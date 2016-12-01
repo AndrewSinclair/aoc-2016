@@ -40,16 +40,26 @@
   (let [new-direction (get-next-direction direction rotation)]
     [new-direction (travel new-direction [x y] distance)]))
 
+(defn move-command-with-intermediate
+  [xs [rotation distance]]
+  (let [[direction [x y]] (last xs)
+        new-direction     (get-next-direction direction rotation)]
+    (->>
+      (iterate inc 1)
+      (take distance)
+      (map #(vector new-direction (travel new-direction [x y] %)))
+      (concat xs))))
+
 (defn not-distinct-key
   [xs]
   (loop [visited       #{}
          [head & tail] xs]
     (if (get visited head)
       head
-      (recur (conj visited) tail))))
+      (recur (conj visited head) tail))))
 
 (defn distance-from
-  [[x1 y1] [_ [x2 y2]]]
+  [[x1 y1] [x2 y2]]
   (+ (Math/abs (- x1 x2))
      (Math/abs (- y1 y2))))
 
@@ -61,21 +71,21 @@
     (->>
       commands
       (reduce move-command [start-direction start-pos])
+      second
       (distance-from start-pos))))
 
 (defn calc-part-2
-  "Rotate and walk forward some number, repeat until you have visite the
-  same place twice. How far did you displace?"
+  "Rotate and walk forward some number, repeat until you have crossed your
+  own path somewhere. How far did you displace?"
   [commands]
   (let [start-pos       [0 0]
         start-direction :north
         positions (->>
                     commands
-                    (reductions move-command [start-direction start-pos])
+                    (reduce move-command-with-intermediate [[start-direction start-pos]])
                     (map second))]
     (->>
       (not-distinct-key positions)
-      first
       (distance-from start-pos))))
 
 (defn -main
