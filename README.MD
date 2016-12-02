@@ -11,7 +11,7 @@ Status:
 Day    |  Part 1     | Part 2
 ------ | ----------- | -----------
 1      | complete    | complete
-2      |             | 
+2      | complete    | complete
 3      |             | 
 4      |             | 
 5      |             | 
