@@ -12,8 +12,8 @@ Day    |  Part 1     | Part 2
 ------ | ----------- | -----------
 1      | complete    | complete
 2      | complete    | complete
-3      |             | 
-4      |             | 
+3      | complete    | complete
+4      | in-progress | 
 5      |             | 
 6      |             | 
 7      |             | 
