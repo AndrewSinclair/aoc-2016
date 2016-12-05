@@ -14,7 +14,7 @@ Day    |  Part 1     | Part 2
 2      | complete    | complete
 3      | complete    | complete
 4      | complete    | complete
-5      |             | 
+5      | complete    | complete
 6      |             | 
 7      |             | 
 8      |             | 
