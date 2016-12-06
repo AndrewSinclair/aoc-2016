@@ -4,17 +4,7 @@
 
 (defn pivot-data
   [data]
-  (->>
-    (concat
-      (map #(nth % 0) data)
-      (map #(nth % 1) data)
-      (map #(nth % 2) data)
-      (map #(nth % 3) data)
-      (map #(nth % 4) data)
-      (map #(nth % 5) data)
-      (map #(nth % 6) data)
-      (map #(nth % 7) data))
-    (partition 624)))
+  (apply mapv vector data))
 
 (defn parse-data
   [input]
@@ -23,21 +13,16 @@
     string/split-lines
     pivot-data))
 
-(defn calc-part-1
-  [data]
+(defn calc
+  [sort-order data]
   (->>
     data
-    (map frequencies)
-    (map #(sort-by second > %))
-    (map first)))
-
-(defn calc-part-2
-  [data]
-  (->>
-    data
-    (map frequencies)
-    (map #(sort-by second < %))
-    (map first)))
+    (map (comp
+      first
+      first
+      #(sort-by second sort-order %)
+      frequencies))
+    (apply str)))
 
 (defn -main
   "Advent of Code - Day 6"
@@ -46,5 +31,5 @@
         input     (slurp filename)
         data      (parse-data input)]
     (do
-      (println (calc-part-1 data))
-      (println (calc-part-2 data)))))
+      (println (calc > data))
+      (println (calc < data)))))
