@@ -2,13 +2,6 @@
   (:require [clojure.string :as string])
   (:gen-class))
 
-(defn tuplize
-  [n xs]
-  (->>
-    (range n)
-    (map #(drop % xs))
-    (apply map vector)))
-
 (defn abba-reducer
   [_ [a b b' a']]
   (if (and
@@ -21,7 +14,7 @@
   [text]
   (->>
     text
-    (tuplize 4)
+    (partition 4 1)
     (reduce abba-reducer false)))
 
 (defn aba-reducer
@@ -36,7 +29,7 @@
   [supernet hypernets]
   (->>
     supernet
-    (tuplize 3)
+    (partition 3 1)
     (reduce (partial aba-reducer hypernets) false)))
 
 (defn parse-input
