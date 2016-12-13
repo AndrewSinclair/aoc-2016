@@ -18,13 +18,23 @@
     (let [[_ input-val bot] (re-matches #"value (\d+) goes to bot (\d+)" input-line)]
       {:value input-val :goes-to-bot bot})
     (let [[_ robot low-designation low-id high-designation high-id]  (re-matches #"bot (\d+) gives low to (bot|output) (\d+) and high to (bot|output) (\d+)" input-line)
-          low-heir [(if (= low-deisgnation "bot") :bot :output) low-id]
-		  high-heir [(if (= high-deisgnation "bot") :bot :output) high-id]]
+          low-heir  [(if (= low-deisgnation "bot") :bot :output) low-id]
+          high-heir [(if (= high-deisgnation "bot") :bot :output) high-id]]
       {:bot robot :gives-low-to low-heir :gives-high-to high-heir})))
 
 (defn resolve-bot-map
+  "enter all the values first, then go through it. When a bot has two, enter them too."
   [data]
-  enter all the values first, then go through it. When a bot has two, enter them too.)
+  (let [queue (-> (clojure.lang.PersistentQueue/EMPTY) push-all-values)]
+    (loop [queue queue
+           data  data]
+      (if (first queue)
+        (if (:bot (first queue))
+          (let [curr-bot (first queue)
+                low      (:gives-low-to  curr-bot)
+                high     (:gives-high-to curr-bot)]
+            (get-in data [:bots (:bot curr-bot) low])
+            ())))
 
 (defn calc-part-1
   [data]
