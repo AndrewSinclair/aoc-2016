@@ -1,5 +1,6 @@
 (ns day-11.core
-  (:require [clojure.math.combinatorics :as combos])
+  (:require [clojure.math.combinatorics :as combos]
+            [clojure.string :as string])
   (:gen-class))
 
 (def start-data
@@ -31,10 +32,18 @@
   (concat
     (->>
       (combos/combinations (nth data elevator) 1)
-      (map #(update-in (update-in data [elevator] set-minus %) [(direction elevator)] concat %)))
+      (map #(vector
+            (direction elevator)
+            (update-in
+              (update-in data [elevator] set-minus %)
+              [(direction elevator)] concat %))))
     (->>
       (combos/combinations (nth data elevator) 2)
-      (map #(update-in (update-in data [elevator] set-minus %) [(direction elevator)] concat %)))))
+      (map #(vector
+              (direction elevator)
+              (update-in
+                (update-in data [elevator] set-minus %)
+                [(direction elevator)] concat %))))))
 
 (defn get-all-next-moves
   "move the elevator and (1 or 2 things) up or down
@@ -74,15 +83,16 @@
 
 (defn calc-part-1
   [init-data init-queue]
-  (loop [queue (conj init-queue [0 init-data])]
+  (loop [run-away 1000000
+    queue (conj init-queue [0 init-data])]
     (if (first queue)
       (let [curr-move        (first queue)
             next-moves       (get-all-next-moves curr-move)
             valid-next-moves (filter (comp not is-invalid-state?) next-moves)
             queue            (reduce conj queue valid-next-moves)]
-        (if (finished? curr-move)
+        (if (or (zero? run-away) (finished? curr-move))
           curr-move
-          (recur (pop queue)))))))
+          (recur (dec run-away) (pop queue)))))))
 
 
 (defn calc-part-2
