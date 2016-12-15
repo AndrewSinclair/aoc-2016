@@ -1,6 +1,6 @@
 (ns day-11.core
-  (:require [clojure.math.combinatorics :as combos]
-            [clojure.string :as string])
+  (:require [clojure.math.combinatorics :as combos])
+  (:use [clojure.pprint])
   (:gen-class))
 
 (def start-data
@@ -14,6 +14,18 @@
    [{:generator :hydrogen}]
    [{:generator :lithium}]
    []])
+
+(def invalid-data
+  [[{:microchip :hydrogen} {:generator :lithium}]
+  []
+  []
+  []])
+
+(def valid-data
+  [[{:microchip :hydrogen} {:generator :hydrogen}]
+  []
+  []
+  []])
 
 (def empty-queue clojure.lang.PersistentQueue/EMPTY)
 
@@ -60,17 +72,21 @@
   (let [generator-types (map :generator generators)]
     (->>
       chips
-      (filter #(not (contains generators (:microchip %)))))))
+      (filter #(not (contains generator-types (:microchip %)))))))
 
 (defn is-floor-invalid-state?
   [floor]
   (let [chips                   (filter :microchip floor)
         generators              (filter :generator floor)
         chips-without-generator (get-chips-wo-generators chips generators)]
-    (some #(contains generators (second %)) chips-without-generator)))
+    (and (not (or (zero? (count generators))
+                  (zero? (count chips))
+                  (zero? (count chips-without-generator))))
+         (not (some #(contains generators (:microchip %)) chips-without-generator)))))
 
 (defn is-invalid-state?
-  "on floor n, if there is a chip without matching generator and another generator, then it's invalid"
+  "on floor n, if there is a chip without matching generator and another generator, then it's invalid.
+  If the elevator was on an empty floor, that would be bad too, but the algorithm afaik doesn't run into that..."
   [[_ data]]
   (some is-floor-invalid-state? data))
 
@@ -82,17 +98,18 @@
     (-> data (subvec 0 3) flatten count zero?)))
 
 (defn calc-part-1
-  [init-data init-queue]
-  (loop [run-away 1000000
+  [init-data init-queue max-loops]
+  (loop [run-away max-loops
     queue (conj init-queue [0 init-data])]
     (if (first queue)
       (let [curr-move        (first queue)
             next-moves       (get-all-next-moves curr-move)
             valid-next-moves (filter (comp not is-invalid-state?) next-moves)
             queue            (reduce conj queue valid-next-moves)]
+        (do (pprint [curr-move run-away])
         (if (or (zero? run-away) (finished? curr-move))
           curr-move
-          (recur (dec run-away) (pop queue)))))))
+          (recur (dec run-away) (pop queue))))))))
 
 
 (defn calc-part-2
