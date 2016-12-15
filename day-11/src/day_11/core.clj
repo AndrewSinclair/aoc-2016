@@ -1,43 +1,31 @@
 (ns day-11.core
   (:require [clojure.math.combinatorics :as combos])
-  (:use [clojure.pprint])
   (:gen-class))
 
-(def start-data
+(def start-data-1
   [[{:generator :promethium} {:microchip :promethium}]
-   [{:generator :cobalt} {:generator :curium} {:generator :ruthenium} {:generator :plutonium}]
-   [{:microchip :cobalt} {:microchip :curium} {:microchip :ruthenium} {:microchip :plutonium}]
+   [{:generator :cobalt} {:generator :curium} {:generator :plutonium} {:generator :ruthenium}]
+   [{:microchip :cobalt} {:microchip :curium} {:microchip :plutonium} {:microchip :ruthenium}]
    []])
 
-(def test-data
-  [[{:microchip :hydrogen} {:microchip :lithium}]
-   [{:generator :hydrogen}]
-   [{:generator :lithium}]
+
+(def start-data-2
+  [[{:microchip :e} {:generator :e} {:microchip :d} {:generator :d} {:generator :promethium} {:microchip :promethium}]
+   [{:generator :cobalt} {:generator :curium} {:generator :plutonium} {:generator :ruthenium}]
+   [{:microchip :cobalt} {:microchip :curium} {:microchip :plutonium} {:microchip :ruthenium}]
    []])
 
-(def invalid-data
-  [[{:microchip :hydrogen} {:generator :lithium}]
-  []
-  []
-  []])
+(def sort-by-associative-values (comp (partial sort-by second) (partial sort-by first)))
 
-(def valid-data
-  [[{:microchip :hydrogen} {:generator :hydrogen}]
-  []
-  []
-  []])
-
-(def empty-queue clojure.lang.PersistentQueue/EMPTY)
-
-(defn contains
+(defn contains-in-list
   [xs x]
-  (not (zero? (count (filter #(= % x) xs)))))
+  (seq (filter #(= x %) xs)))
 
 (defn set-minus
   [xs ys]
   (->>
     xs
-    (filter #(not (contains ys %)))))
+    (filter #(not (contains-in-list (vec ys) %)))))
 
 (defn get-next-moves
   [direction elevator data]
@@ -45,17 +33,17 @@
     (->>
       (combos/combinations (nth data elevator) 1)
       (map #(vector
-            (direction elevator)
-            (update-in
-              (update-in data [elevator] set-minus %)
-              [(direction elevator)] concat %))))
+              (direction elevator)
+              (update-in
+                (update-in data [elevator] set-minus %)
+                [(direction elevator)] (comp (partial sort-by second) (partial sort-by first) concat) %))))
     (->>
       (combos/combinations (nth data elevator) 2)
       (map #(vector
               (direction elevator)
               (update-in
                 (update-in data [elevator] set-minus %)
-                [(direction elevator)] concat %))))))
+                [(direction elevator)] (comp (partial sort-by second) (partial sort-by first) concat) %))))))
 
 (defn get-all-next-moves
   "move the elevator and (1 or 2 things) up or down
@@ -72,54 +60,50 @@
   (let [generator-types (map :generator generators)]
     (->>
       chips
-      (filter #(not (contains generator-types (:microchip %)))))))
+      (filter #(not (contains-in-list (vec generator-types) (:microchip %)))))))
 
 (defn is-floor-invalid-state?
   [floor]
   (let [chips                   (filter :microchip floor)
         generators              (filter :generator floor)
         chips-without-generator (get-chips-wo-generators chips generators)]
-    (and (not (or (zero? (count generators))
-                  (zero? (count chips))
-                  (zero? (count chips-without-generator))))
-         (not (some #(contains generators (:microchip %)) chips-without-generator)))))
+    (and (not (or (empty? generators)
+                  (empty? chips)
+                  (empty? chips-without-generator)))
+         (not (some #(contains? (vec generators) (:microchip %)) chips-without-generator)))))
 
 (defn is-invalid-state?
   "on floor n, if there is a chip without matching generator and another generator, then it's invalid.
   If the elevator was on an empty floor, that would be bad too, but the algorithm afaik doesn't run into that..."
-  [[_ data]]
-  (some is-floor-invalid-state? data))
+  [prev-states [elevator data]]
+  (or (contains? prev-states [elevator data])
+      (some is-floor-invalid-state? data)))
 
 (defn finished?
   "If the elevator is on floor 3, and if rows 0,1, and 2, are empty, it's done"
   [[elevator data]]
   (and
     (= elevator 3)
-    (-> data (subvec 0 3) flatten count zero?)))
+    (-> data (subvec 0 3) flatten empty?)))
 
-(defn calc-part-1
-  [init-data init-queue max-loops]
-  (loop [run-away max-loops
-    queue (conj init-queue [0 init-data])]
-    (if (first queue)
-      (let [curr-move        (first queue)
-            next-moves       (get-all-next-moves curr-move)
-            valid-next-moves (filter (comp not is-invalid-state?) next-moves)
-            queue            (reduce conj queue valid-next-moves)]
-        (do (pprint [curr-move run-away])
-        (if (or (zero? run-away) (finished? curr-move))
-          curr-move
-          (recur (dec run-away) (pop queue))))))))
-
-
-(defn calc-part-2
+(defn calc-num-moves
   [init-data init-queue]
-  nil)
-
+  (loop [queue (conj init-queue [0 [0 init-data]])
+         prev-states #{}]
+    (if (first queue)
+      (let [[num-moves curr-move]  (first queue)
+            next-moves             (get-all-next-moves curr-move)
+            valid-next-moves       (filter (comp not #(is-invalid-state? prev-states %)) next-moves)
+            queue                  (reduce #(conj %1 [(inc num-moves) %2]) queue valid-next-moves)
+            prev-states            (reduce conj prev-states valid-next-moves)]
+        (if (finished? curr-move)
+          [num-moves curr-move]
+          (recur (pop queue) prev-states))))))
 
 (defn -main
   "Advent of Code - Day 11 - Elevator, Generators and Microchips"
   [& args]
-  (do
-    (println (calc-part-1 start-data empty-queue))
-    (println (calc-part-2 start-data empty-queue))))
+  (let [queue clojure.lang.PersistentQueue/EMPTY]
+    (do
+      (println (calc-num-moves start-data-1 queue))
+      (println (calc-num-moves start-data-2 queue)))))
