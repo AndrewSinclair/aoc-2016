@@ -10,7 +10,7 @@
 
 
 (def start-data-2
-  [[{:microchip :e} {:generator :e} {:microchip :d} {:generator :d} {:generator :promethium} {:microchip :promethium}]
+  [[{:generator :d} {:microchip :e} {:generator :e} {:microchip :d} {:generator :promethium} {:microchip :promethium}]
    [{:generator :cobalt} {:generator :curium} {:generator :plutonium} {:generator :ruthenium}]
    [{:microchip :cobalt} {:microchip :curium} {:microchip :plutonium} {:microchip :ruthenium}]
    []])
