@@ -20,10 +20,10 @@ Day    |  Part 1     | Part 2
 8      | complete    | complete
 9      | complete    | complete
 10     | complete    | complete
-11     | complete    | in-progress 
+11     | complete    | in-progress
 12     | complete    | complete
-13     | in-progress | 
-14     |             | 
+13     | complete    | complete
+14     | in-progress | 
 15     |             | 
 16     |             | 
 17     |             | 
