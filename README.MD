@@ -23,8 +23,8 @@ Day    |  Part 1     | Part 2
 11     | complete    | in-progress
 12     | complete    | complete
 13     | complete    | complete
-14     | in-progress | 
-15     |             | 
+14     | complete    | complete
+15     | in-progress | 
 16     |             | 
 17     |             | 
 18     |             | 
