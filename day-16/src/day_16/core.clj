@@ -1,41 +1,42 @@
 (ns day-16.core
   (:gen-class))
 
-(def input "00101000101111010")
+(def input [0 0 1 1 1 1 0 1 1 1 1 1 0 1 0 0 0])
 
 (defn flip
   [bits]
   (->>
     bits
     reverse
-    (map #(if (= \0 %) \1 \0))
-    (concat bits [\0])))
+    (map #(-> % inc (mod 2)))))
 
 (defn generate-dragon
+  "This is slower"
   [disk-size input]
   (->>
     input
-    (iterate #(flip %))
+    (iterate #(concat input [0] (flip %)))
     (drop-while #(< (count %) disk-size))
     first
     (take disk-size)))
 
 (defn generate-dragon-recur
+  "This is faster"
   [disk-size input]
   (if (>= (count input) disk-size)
     (take disk-size input)
-    (recur disk-size (flip input))))
+    (recur disk-size (concat input [0] (flip input)))))
 
 (defn checksum
-  [xs]
+  [curve]
   (->>
-    xs
+    curve
     (iterate
       (fn [bits]
         (->>
           bits 
           (partition 2)
-          (map #(if (= (first %) (second %)) \1 \0)))))
+          (map (fn [[x y]] (if (= x y) 1 0))))))
     (filter #(odd? (count %)))
     first))
 
@@ -43,7 +44,7 @@
   [input]
   (->>
     input
-    (generate-dragon-recur 272)
+    (generate-dragon 272)
     checksum
     (apply str)))
 
